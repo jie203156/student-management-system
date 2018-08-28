@@ -62,4 +62,8 @@
         window.location.href = '/account/register'
     }
 
+    $('#vcodeimgId').click(function(){
+        $(this).attr("src",`/account/vcode?randomId=${Math.random()}`)
+    })
+
 </script>
