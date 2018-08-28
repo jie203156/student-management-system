@@ -86,7 +86,9 @@
                 if(res.status !=0 ){
                     alert(res.message)
                     $('#vcodeimgId').attr("src",`/account/vcode?randomId=${Math.random()}`)
-                }
+                }else {
+                    window.location,href = "/studentmanager/list"
+                } 
             }
         })
     }

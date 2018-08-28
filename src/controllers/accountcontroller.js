@@ -92,6 +92,24 @@ exports.login = (req,res)=>{
         return
     }
 
-    res.json(result)
-    
+    //去数据库中 , 使用username & password 去校验
+    MongoClient.connect(url,{useNewUrlParser:true}, function(err, client) {
+       //获取db对象
+        const db = client.db(dbName);
+       
+        //拿着要操作的集合
+        const collection = db.collection('accountInfo');
+
+        collection.findOne({username:req.body.username,password:req.body.password},(err,doc)=>{
+            if(doc == null){
+                //关闭掉数据库连接
+                client.close();
+                result.status = 2
+                result.message = "用户名或密码错误"
+
+                
+            }
+            res.json(result)
+        })
+    });
 }
