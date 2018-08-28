@@ -64,6 +64,8 @@ exports.register = (req,res)=>{
 exports.getVcodeImage = (req,res)=>{
 
     const vcode = parseInt(Math.random()*9000+1000)
+    //把刚刚随机生成的验证码 , 存储到session中
+    req.session.vcode = vcode
 
     var p = new captchapng(80,30,vcode); // width,height,numeric captcha
     p.color(0, 0, 0, 0);  // First color: background (red, green, blue, alpha)
@@ -75,4 +77,21 @@ exports.getVcodeImage = (req,res)=>{
         'Content-Type': 'image/png'
     });
     res.end(imgbase64);
+}
+
+//最终处理 , 登录
+exports.login = (req,res)=>{
+    const result ={status:0 , message:"登录成功"}
+
+    //校验验证码
+    if (req.body.vcode != req.session.vcode){
+        result.status = 1
+        result.message = "验证码错误"
+
+        res.json(result)
+        return
+    }
+
+    res.json(result)
+    
 }
