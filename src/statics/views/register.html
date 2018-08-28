@@ -40,7 +40,29 @@
         </div>
     </div>
 </body>
+</html>
 <script>
 
+    function register(){
+        const username = $('#usernameId').val();
+        const password = md5($('#passwordId').val()+"!@#ZZZ-_-");
+
+        $.post({
+            url:"/account/register",
+            data:{
+                username,
+                password
+            },
+            success:function(result){
+                if(result.status !== 0){
+                    alert(result.message)
+                }else {
+                    window.location.href = "/account/login"
+                }
+                
+            }
+        })
+    }
+
+    
 </script>
-</html>

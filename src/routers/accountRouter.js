@@ -15,7 +15,7 @@ accountRouter.get('/login',accountCTRL.getLoginPage)
 //获取注册界面
 accountRouter.get('/register',accountCTRL.getRegisterPage)
 
-
+accountRouter.post('/register',accountCTRL.register)
 
 //4. 导出
 module.exports = accountRouter
