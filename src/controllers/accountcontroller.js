@@ -1,16 +1,12 @@
 const path = require('path')
-const MongoClient = require('mongodb').MongoClient;
 const captchapng = require('captchapng');
-// Connection URL
-const url = 'mongodb://localhost:27017';
- 
-// Database Name
-const dbName = 'jie';
+const databasetool = require(path.join(__dirname,"../tools/databasetool.js"))
+
 
 //导出登录页面
 exports.getLoginPage = (req,res)=>{
     res.sendFile(path.join(__dirname,'../statics/views/login.html'))
-}
+}   
 //导出注册页面
 exports.getRegisterPage = (req,res)=>{
     res.sendFile(path.join(__dirname,'../statics/views/register.html'))
@@ -23,41 +19,31 @@ exports.register = (req,res)=>{
 
     //去数据库中查询 , 用户名是否已经存在 , 如果已经存在 , 则返回用户名存在给浏览器
 
-    // Use connect method to connect to the server
-    MongoClient.connect(url,{useNewUrlParser:true}, function(err, client) {
-       //拿到数据操作的db对象
-        const db = client.db(dbName);
-        //拿到数据库的集合
-        const collection = db.collection('accountInfo');
-        //先根据用户名查询
-        collection.findOne({username:req.body.username},(err,doc)=>{
-            if(doc){ // 用户名存在
-                
-                //关掉和数据库的连接
-                client.close();
-                //更改返回的状态
-                result.status = 1
-                result.message = "用户名已经存在"
-                
 
-                res.json(result)
-            }else{//用户名不存在    
-             //如果用户名不存在 , 则先要把我们的数据插入到数据库中 , 然后返回注册成功给浏览器
+    databasetool.findOne('accountInfo',{username:req.body.username},(err,doc)=>{
+        if(doc){ // 用户名存在
 
-             collection.insertOne(req.body,(err,result2)=>{
+            //更改返回的状态
+            result.status = 1
+            result.message = "用户名已经存在"
+            
 
-                //关掉和数据库的连接
-                client.close();
-                 if (result2 == null){ //失败
-                    result.status = 2
-                    result.message = "注册失败"
-                 }
+            res.json(result)
+        }else{//用户名不存在    
+         //如果用户名不存在 , 则先要把我们的数据插入到数据库中 , 然后返回注册成功给浏览器
 
-                 res.json(result)
-             })
-            }
-        })
-    });  
+         databasetool.insertOne('accountInfo',req.body,(err,result2)=>{
+
+             if (result2 == null){ //失败
+                result.status = 2
+                result.message = "注册失败"
+             }
+
+             res.json(result)
+         })
+        }
+    })
+
 }
 
 //最终处理 , 返回图片验证码
@@ -66,6 +52,8 @@ exports.getVcodeImage = (req,res)=>{
     const vcode = parseInt(Math.random()*9000+1000)
     //把刚刚随机生成的验证码 , 存储到session中
     req.session.vcode = vcode
+   
+
 
     var p = new captchapng(80,30,vcode); // width,height,numeric captcha
     p.color(0, 0, 0, 0);  // First color: background (red, green, blue, alpha)
@@ -92,24 +80,21 @@ exports.login = (req,res)=>{
         return
     }
 
-    //去数据库中 , 使用username & password 去校验
-    MongoClient.connect(url,{useNewUrlParser:true}, function(err, client) {
-       //获取db对象
-        const db = client.db(dbName);
-       
-        //拿着要操作的集合
-        const collection = db.collection('accountInfo');
 
-        collection.findOne({username:req.body.username,password:req.body.password},(err,doc)=>{
-            if(doc == null){
-                //关闭掉数据库连接
-                client.close();
-                result.status = 2
-                result.message = "用户名或密码错误"
+    databasetool.findOne('accountInfo',{username:req.body.username,password:req.body.password},(err,doc)=>{
+        if(doc == null){
+            result.status = 2
+            result.message = "用户名或密码错误"
+        }else{
+            req.session.loginName = req.body.username
+            
+        }
+        res.json(result)
+    })
 
-                
-            }
-            res.json(result)
-        })
-    });
+}
+
+exports.logout = (req,res)=>{
+    req.session.loginName = null;
+    res.sendFile(path.join(__dirname,'../statics/views/login.html'))
 }
