@@ -1,2 +1,2 @@
-# szhmqd_node
-深圳黑马前端21期Node项目
+# student management system
+学生管理系统
